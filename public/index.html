@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat 💖</title>
+  <style>
+    /* Copy style gradient, box, animation từ đầu hoặc tự chỉnh */
+    body {
+      font-family: 'Arial Rounded MT Bold', sans-serif;
+      background: linear-gradient(135deg, #ffafbd, #ffc3a0);
+      margin: 0; padding: 20px; height: 100vh;
+    }
+    #chat-container {
+      background: rgba(255,255,255,0.9);
+      border-radius: 20px; padding: 20px;
+      max-width: 600px; margin: 0 auto;
+      box-shadow: 0 0 30px rgba(255,75,110,0.3);
+    }
+    #messages {
+      height: 300px; overflow-y: auto;
+      margin: 10px 0; padding: 10px;
+      background: #fff5f7; border: 2px solid #ff8e9e;
+      border-radius: 15px;
+    }
+    .message {
+      margin: 10px 0; padding: 10px;
+      border-radius: 15px; background: white;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity:0; transform:translateY(10px) }
+      to   { opacity:1; transform:translateY(0) }
+    }
+    #message-input {
+      width: calc(100% - 90px);
+      padding: 10px;
+      border: 2px solid #ff4b6e;
+      border-radius: 15px;
+      margin-right: 10px;
+    }
+    button {
+      background: #ff4b6e; color: white;
+      border: none; padding: 10px 20px;
+      border-radius: 15px; cursor: pointer;
+    }
+    button:hover { background: #ff2d55; }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <div id="messages"></div>
+    <input id="message-input" placeholder="Nhập tin nhắn..." autocomplete="off" />
+    <button id="send-btn">Gửi 💌</button>
+  </div>
+
+  <!-- import Socket.io client -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const username = `User${Math.floor(Math.random()*1000)}`;
+    const messagesDiv = document.getElementById('messages');
+    const input = document.getElementById('message-input');
+    const btn = document.getElementById('send-btn');
+
+    // Hiển thị tin nhắn
+    function showMessage(msg) {
+      const el = document.createElement('div');
+      el.className = 'message';
+      el.innerHTML = `<strong>${msg.username}</strong>: ${msg.text}`;
+      messagesDiv.appendChild(el);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // Nhận lịch sử
+    socket.on('init', msgs => {
+      msgs.forEach(showMessage);
+    });
+
+    // Nhận tin mới
+    socket.on('chat message', msg => {
+      showMessage(msg);
+    });
+
+    // Gửi tin
+    function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+      socket.emit('chat message', { username, text });
+      input.value = '';
+    }
+
+    btn.addEventListener('click', sendMessage);
+    input.addEventListener('keypress', e => {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
+</body>
+</html>
